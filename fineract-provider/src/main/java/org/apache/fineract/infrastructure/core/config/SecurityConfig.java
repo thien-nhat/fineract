@@ -137,6 +137,8 @@ public class SecurityConfig {
                     .requestMatchers(API_MATCHER.matcher(HttpMethod.POST, "/api/*/authentication")).permitAll()
                     .requestMatchers(API_MATCHER.matcher(HttpMethod.POST, "/api/*/password/forgot")).permitAll()
                     .requestMatchers(API_MATCHER.matcher(HttpMethod.PUT, "/api/*/instance-mode")).permitAll()
+                    .requestMatchers(API_MATCHER.matcher(HttpMethod.GET, "/api/openapi.json")).permitAll()
+                    .requestMatchers(API_MATCHER.matcher(HttpMethod.GET, "/api/openapi.yaml")).permitAll()
                     // businessdate
                     .requestMatchers(API_MATCHER.matcher(HttpMethod.GET, "/api/*/businessdate/*"))
                     .hasAnyAuthority(ALL_FUNCTIONS, ALL_FUNCTIONS_READ, "READ_BUSINESS_DATE")
@@ -492,7 +494,9 @@ public class SecurityConfig {
                 basicAuthenticationEntryPoint(), toApiJsonSerializer, configurationDomainService, cacheWritePlatformService,
                 userNotificationService, basicAuthTenantDetailsService, businessDateReadPlatformService);
 
-        filter.setRequestMatcher(API_MATCHER.matcher("/api/**"));
+        filter.setRequestMatcher(request -> API_MATCHER.matcher("/api/**").matches(request)
+            && !API_MATCHER.matcher(HttpMethod.GET, "/api/openapi.json").matches(request)
+            && !API_MATCHER.matcher(HttpMethod.GET, "/api/openapi.yaml").matches(request));
         return filter;
     }
 

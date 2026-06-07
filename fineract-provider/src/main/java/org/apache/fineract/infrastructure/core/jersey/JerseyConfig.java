@@ -19,15 +19,24 @@
 
 package org.apache.fineract.infrastructure.core.jersey;
 
+import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import io.swagger.v3.oas.integration.SwaggerConfiguration;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.ext.Provider;
+import java.util.Set;
 import org.apache.fineract.infrastructure.core.api.jersey.PageableParamProvider;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.glassfish.jersey.server.spi.internal.ValueParamProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -37,7 +46,10 @@ import org.springframework.context.annotation.Configuration;
 @ApplicationPath("/api")
 public class JerseyConfig extends ResourceConfig {
 
-    JerseyConfig() {
+    private final String serverContextPath;
+
+    JerseyConfig(@Value("${server.servlet.context-path:}") String serverContextPath) {
+        this.serverContextPath = normalizeContextPath(serverContextPath);
         register(org.glassfish.jersey.media.multipart.MultiPartFeature.class);
         register(new AbstractBinder() {
 
@@ -55,8 +67,25 @@ public class JerseyConfig extends ResourceConfig {
 
     @PostConstruct
     public void setup() {
+        register(new OpenApiResource().openApiConfiguration(new SwaggerConfiguration()
+                .openAPI(new OpenAPI().addServersItem(new Server().url(serverContextPath))
+                        .components(new Components()
+                                .addSecuritySchemes("basicAuth", new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic"))
+                                .addSecuritySchemes("tenantid",
+                                        new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER)
+                                                .name("Fineract-Platform-TenantId")))
+                        .addSecurityItem(new SecurityRequirement().addList("basicAuth").addList("tenantid")))
+                .resourcePackages(Set.of("org.apache.fineract")).readerClass("org.apache.fineract.infrastructure.openapi.FineractOperationIdReader")));
+
         appCtx.getBeansWithAnnotation(Path.class).values().forEach(this::register);
 
         appCtx.getBeansWithAnnotation(Provider.class).values().forEach(this::register);
+    }
+
+    private static String normalizeContextPath(String contextPath) {
+        if (contextPath == null || contextPath.isBlank() || "/".equals(contextPath)) {
+            return "";
+        }
+        return contextPath.startsWith("/") ? contextPath : "/" + contextPath;
     }
 }

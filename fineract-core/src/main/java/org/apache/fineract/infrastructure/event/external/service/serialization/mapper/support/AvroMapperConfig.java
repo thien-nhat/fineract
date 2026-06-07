@@ -25,5 +25,5 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
 
 @MapperConfig(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.ERROR, builder = @Builder(disableBuilder = true), uses = {
-        AvroDateTimeMapper.class, AvroMonthDayMapper.class, ExternalIdMapper.class }, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+        AvroDateTimeMapper.class, AvroMonthDayMapper.class, ExternalIdMapper.class, AvroScalarMapper.class }, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public class AvroMapperConfig {}

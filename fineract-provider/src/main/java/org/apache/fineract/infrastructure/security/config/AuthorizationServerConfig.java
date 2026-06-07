@@ -128,7 +128,7 @@ public class AuthorizationServerConfig {
     @Order(1)
     public SecurityFilterChain publicEndpoints(HttpSecurity http) throws Exception {
         // Public endpoints: permitAll, no JWT
-        http.securityMatcher("/swagger-ui/**", "/fineract.json", "/actuator/**", "/legacy-docs/apiLive.htm")
+        http.securityMatcher("/swagger-ui/**", "/fineract.json", "/api/openapi.json", "/api/openapi.yaml", "/actuator/**", "/legacy-docs/apiLive.htm")
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()).csrf(AbstractHttpConfigurer::disable);
 
         if (fineractProperties.getSecurity().getCors().isEnabled()) {

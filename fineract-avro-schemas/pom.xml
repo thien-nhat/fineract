@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.apache.fineract</groupId>
+    <artifactId>fineract-parent</artifactId>
+    <version>0.0.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>fineract-avro-schemas</artifactId>
+  <name>Fineract Avro Schemas</name>
+  <description>Fineract Avro Schemas</description>
+  <packaging>jar</packaging>
+
+  <properties>
+    <maven.compiler.release>8</maven.compiler.release>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>1.12.1</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
+        <version>4.2.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>5.0.6</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>preprocess-avro-schemas</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <scripts>
+                <script><![CDATA[
+def inputDir = new File(project.basedir, 'src/main/avro')
+def outputDir = new File(project.build.directory, 'generated-avro/src/main/avro')
+def templateFile = new File(project.basedir, 'src/main/resources/avro-templates/bigdecimal.avsc')
+def templateText = templateFile.getText('UTF-8')
+
+if (outputDir.exists()) {
+    outputDir.deleteDir()
+}
+outputDir.mkdirs()
+
+inputDir.eachFileRecurse { file ->
+    if (file.isFile()) {
+        def relativePath = inputDir.toPath().relativize(file.toPath())
+        def targetFile = new File(outputDir, relativePath.toString())
+        targetFile.parentFile.mkdirs()
+        targetFile.setText(file.getText('UTF-8').replace('"bigdecimal"', templateText), 'UTF-8')
+    }
+}
+                ]]></script>
+              </scripts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro-maven-plugin</artifactId>
+        <version>1.12.1</version>
+        <executions>
+          <execution>
+            <id>generate-avro-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>schema</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>${project.build.directory}/generated-avro/src/main/avro</sourceDirectory>
+              <outputDirectory>${project.build.directory}/generated-sources/avro</outputDirectory>
+              <templateDirectory>${project.basedir}/src/main/resources/avro-generator-templates/</templateDirectory>
+              <stringType>String</stringType>
+              <enableDecimalLogicalType>true</enableDecimalLogicalType>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.14.1</version>
+        <configuration>
+          <release>8</release>
+          <parameters>true</parameters>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

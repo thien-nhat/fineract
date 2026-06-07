@@ -27,11 +27,15 @@ import org.apache.fineract.command.core.CommandHandlerManager;
 import org.apache.fineract.command.core.CommandHookManager;
 import org.apache.fineract.command.disruptor.DisruptorCommandProperties;
 import org.apache.fineract.command.disruptor.implementation.DisruptorCommandDispatcher;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableConfigurationProperties(DisruptorCommandProperties.class)
+@ConditionalOnProperty(value = "fineract.command.disruptor.enabled", havingValue = "true")
 class DisruptorCommandConfiguration {
 
     @Bean
