@@ -73,12 +73,28 @@ public class OfficeHelper {
         return ok(() -> FineractFeignClientHelper.getFineractFeignClient().offices().retrieveOfficeByExternalId(externalId));
     }
 
-    public PutOfficesOfficeIdResponse updateOfficeByExternalId(String externalId, String name, String openingDate) {
-        PutOfficesOfficeIdRequest request = new PutOfficesOfficeIdRequest()//
+    public PostOfficesResponse createOffice(final String name, final LocalDate openingDate, final Long parentId) {
+        PostOfficesRequest request = new PostOfficesRequest()//
+                .parentId(parentId)//
                 .name(name)//
                 .openingDate(openingDate)//
-                .dateFormat("dd MMMM yyyy")//
+                .dateFormat("yyyy-MM-dd")//
                 .locale("en");
-        return ok(() -> FineractFeignClientHelper.getFineractFeignClient().offices().updateOfficeWithExternalId(externalId, request));
+        return ok(() -> FineractFeignClientHelper.getFineractFeignClient().offices().createOffice(request));
+    }
+
+    public PostOfficesResponse createOffice(final String externalId, final String name, final LocalDate openingDate, final Long parentId) {
+        PostOfficesRequest request = new PostOfficesRequest()//
+                .parentId(parentId)//
+                .name(name)//
+                .externalId(externalId)//
+                .openingDate(openingDate)//
+                .dateFormat("yyyy-MM-dd")//
+                .locale("en");
+        return ok(() -> FineractFeignClientHelper.getFineractFeignClient().offices().createOffice(request));
+    }
+
+    public java.util.List<GetOfficesResponse> getAllOffices() {
+        return ok(() -> FineractFeignClientHelper.getFineractFeignClient().offices().retrieveOffices(true, null, null));
     }
 }
